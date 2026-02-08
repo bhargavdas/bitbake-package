@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+BITBAKE_HOME="/usr/share/bitbake"
+COMMAND=$(basename "$0")
+
+export PYTHONPATH="$BITBAKE_HOME/lib${PYTHONPATH:+:$PYTHONPATH}"
+
+exec "$BITBAKE_HOME/bin/$COMMAND" "$@"

@@ -1,0 +1,8 @@
+# wrapper for bitbake scripts
+debian/wrapbitbake/bitbake-wrap usr/share/bitbake/
+
+# Copy the actual source code to the private share directory
+bitbake/bin/* usr/share/bitbake/bin/
+bitbake/lib/* usr/share/bitbake/lib/
+bitbake/conf/* usr/share/bitbake/conf/
+bitbake/classes/* usr/share/bitbake/classes/
