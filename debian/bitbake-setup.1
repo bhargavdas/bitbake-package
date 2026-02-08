@@ -1,0 +1,68 @@
+.TH BITBAKE-SETUP 1 "February 2026" 
+.SH NAME
+bitbake-setup \- BitBake setup utility and environment manager
+.SH SYNOPSIS
+.B bitbake-setup
+[\fIoptions\fR] [\fIsubcommand\fR] [\fIarguments\fR]
+.SH DESCRIPTION
+.B bitbake-setup
+is a utility to manage BitBake build environments. It allows for initializing 
+configurations, managing layers, and ensuring host dependencies are met through 
+buildtools.
+.PP
+Run with the \fBinit\fR argument to get started with a new configuration.
+.SH SUBCOMMANDS
+.TP
+.B list
+List available configurations.
+.TP
+.B init
+Select a configuration and initialize a setup from it.
+.TP
+.B status
+Check if the local setup needs to be synchronized with the configuration.
+.TP
+.B update
+Update a local setup to be in sync with the current configuration.
+.TP
+.B install-buildtools
+Install buildtools to fulfill missing or incorrect host dependencies.
+.TP
+.B settings
+Manage settings files (prefix, directory names, registry locations, etc.).
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show summary of options and exit.
+.TP
+.BR \-d ", " \-\-debug
+Enable detailed debug output.
+.TP
+.BR \-q ", " \-\-quiet
+Print only errors; suppress status messages.
+.TP
+.BI \-\-color " COLOR"
+Colorize output. \fICOLOR\fR can be \fBauto\fR, \fBalways\fR, or \fBnever\fR.
+.TP
+.B \-\-no-network
+Use only local cache; do not check for remote repository updates.
+.TP
+.BI \-\-global-settings " PATH"
+Path to a specific global settings file.
+.TP
+.BI \-\-setting " SECTION SETTING VALUE"
+Modify a specific setting for this invocation only.
+.SH EXAMPLES
+.B bitbake-setup init
+.IP
+Starts the interactive initialization process.
+.PP
+.B bitbake-setup --no-network update
+.IP
+Updates the environment using only locally available cached data.
+.SH SEE ALSO
+.BR bitbake (1)
+.PP
+Use \fBbitbake-setup <subcommand> --help\fR for detailed help on a specific command.
+.SH AUTHOR
+This manual page was generated for the bitbake-setup Debian package.
