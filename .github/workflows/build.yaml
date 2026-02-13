@@ -1,0 +1,93 @@
+name: Build bitbake Debian Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  debian-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            devscripts \
+            debhelper \
+            python3 \
+            xz-utils
+
+      - name: Clone bitbake
+        run: | 
+          git clone https://github.com/openembedded/bitbake.git bitbake
+
+      - name: Create Orig Tarball
+        run: |
+          # We use the version from your changelog to name the tarball correctly
+          VERSION=$(dpkg-parsechangelog -S Version | sed 's/-.*//')
+          PACKAGE=$(dpkg-parsechangelog -S Source)
+          
+          tar --exclude=.git -cJf ../${PACKAGE}_${VERSION}.orig.tar.xz .
+          
+          echo "Tarball created: ../${PACKAGE}_${VERSION}.orig.tar.xz"
+
+      - name: Build Package
+        run: |
+          debuild -us -uc
+
+      - name: Prepare for upload
+        run: |
+          mkdir artifacts
+          mv ../*.deb artifacts/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitbake-setup-package
+          path: artifacts/*.deb
+
+  test:
+    needs: debian-build  # Only run if the build job succeeds
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bitbake-setup-package
+          path: ./dist
+
+      - name: Install Package
+        run: |
+          # Use apt to install the local .deb so it handles dependencies (like python3)
+          sudo apt update
+          sudo apt install -y ./dist/*.deb
+
+      - name: Sanity Test - Execution
+        run: |
+          # Verify the binary is in the PATH
+          which bitbake-setup
+          # Verify wrapper is linked
+          ls -l /usr/bin/bitbake-setup
+          # Run the help command to ensure Python and dependencies are working
+          bitbake-setup --help
+
+      - name: Sanity Test - Manpage
+        run: |
+          # Verify the manpage was installed correctly
+          man -w bitbake-setup
+
+      - name: Sanity Test - Usage
+        run: |
+          # Verify list
+          bitbake-setup list
+          # Verify non-interactive init
+          bitbake-setup init --non-interactive oe-nodistro-master nodistro machine/qemux86-64
