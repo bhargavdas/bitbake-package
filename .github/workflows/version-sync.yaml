@@ -1,0 +1,85 @@
+name: BitBake upstream version sync
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    - cron: '30 0 * * *' # 00:30 UTC daily
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install prerequisites
+        run: |
+          sudo apt update
+          sudo apt install -y git perl build-essential devscripts debhelper python3 xz-utils
+
+      - name: Check upstream BitBake version
+        id: version-check
+        run: |
+          chmod +x scripts/bump-bitbake-version.sh
+          VERSION=$(scripts/bump-bitbake-version.sh)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create version bump branch and commit
+        if: steps.version-check.outputs.changed == 'true'
+        id: bump-commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="auto/bitbake-version-bump-${{ steps.version-check.outputs.version }}"
+          git checkout -b "$BRANCH"
+          git add debian/changelog README.md
+          git commit -m "chore: bump BitBake upstream version to ${{ steps.version-check.outputs.version }}"
+          git push --set-upstream origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.version-check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump BitBake upstream version to ${{ steps.version-check.outputs.version }}"
+          branch: ${{ steps.bump-commit.outputs.branch }}
+          title: "Bump BitBake upstream version to ${{ steps.version-check.outputs.version }}"
+          body: |
+            Automated upstream version sync for BitBake.
+
+            This PR updates debian/changelog and README.md to version ${{ steps.version-check.outputs.version }}.
+          labels: automated-version-bump
+          draft: false
+
+      - name: Build package on updated branch
+        if: steps.version-check.outputs.changed == 'true'
+        run: |
+          PACKAGE=$(dpkg-parsechangelog -S Source)
+          VERSION=$(dpkg-parsechangelog -S Version | sed 's/-.*//')
+          tar --exclude=.git -cJf ../${PACKAGE}_${VERSION}.orig.tar.xz .
+          debuild -us -uc
+          mkdir -p artifacts
+          mv ../*.deb artifacts/
+          mv ../*.dsc artifacts/ 2>/dev/null || true
+          mv ../*.changes artifacts/ 2>/dev/null || true
+
+      - name: Upload artifacts
+        if: steps.version-check.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitbake-version-sync-artifacts
+          path: artifacts/
