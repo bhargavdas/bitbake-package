@@ -49,12 +49,48 @@ jobs:
         run: |
           mkdir artifacts
           mv ../*.deb artifacts/
+          mv ../*.dsc artifacts/ 2>/dev/null || true
+          mv ../*.changes artifacts/ 2>/dev/null || true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bitbake-setup-package
-          path: artifacts/*.deb
+          path: artifacts/
+
+  lintian:
+    needs: debian-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Install Lintian
+        run: |
+          sudo apt update
+          sudo apt install -y lintian
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bitbake-setup-package
+          path: ./dist
+
+      - name: Run Lintian Checks
+        run: |
+          # Lintian checks a .changes file which lists all build artifacts
+          CHANGES_FILE=$(find . -name "*.changes" -type f)
+          
+          if [ -z "$CHANGES_FILE" ]; then
+            echo "Error: No .changes file found"
+            exit 1
+          fi
+          
+          echo "Running lintian on $CHANGES_FILE"
+          lintian -i "$CHANGES_FILE"
+
+      - name: Report Results
+        if: success()
+        run: |
+          echo "✓ Lintian checks passed"
 
   test:
     needs: debian-build  # Only run if the build job succeeds
