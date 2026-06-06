@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Bhargav Das <bhargavdas100@gmail.com>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compat (= 13),
+ debhelper-compat (= 13)
 Standards-Version: 4.6.2
 Homepage: https://git.openembedded.org/bitbake/
 #Vcs-Browser: https://salsa.debian.org/debian/bitbake-setup
@@ -17,14 +17,11 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  python3 (>= 3.8),
- build-essential,
  chrpath,
  cpio,
- debianutils,
  diffstat,
  file,
  gawk,
- gcc,
  git,
  iputils-ping,
  libacl1,
@@ -40,8 +37,8 @@ Depends:
  wget,
  xz-utils,
  zstd
-Description: bitbake-setup is a command-line utility.
- bitbake-setup is a command-line utility used to set up, configure, and
- manage Yocto Project and OpenEmbedded build environments. It automates
- the process of fetching repositories (layers), generating configuration
- files and preparing the shell environment for building images.
+Description: Command-line utility for Bitbake/Yocto build environments.
+ bitbake-setup is used to set up, configure, and manage Yocto Project
+ and OpenEmbedded build environments. It automates the process of fetching
+ repositories (layers), generating configuration files and preparing the
+ shell environment for building images.
