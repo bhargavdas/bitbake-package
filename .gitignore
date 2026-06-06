@@ -1,0 +1,2 @@
+# Exclude upstream bitbake directory (cloned from GitHub during build)
+/bitbake/
