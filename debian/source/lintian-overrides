@@ -1,0 +1,2 @@
+# Source-is-missing warnings from test data and generated assets in upstream bitbake
+bitbake-setup source: source-is-missing

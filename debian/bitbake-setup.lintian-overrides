@@ -1,0 +1,20 @@
+# Warnings from upstream bitbake that don't need to be addressed
+# These are from bundled Toaster UI assets and upstream source code
+
+# Bundled fonts from upstream Toaster UI
+bitbake-setup: duplicate-font-file
+bitbake-setup: opentype-font-prohibits-installable-embedding
+bitbake-setup: truetype-font-prohibits-installable-embedding
+
+# Bundled JavaScript libraries from upstream Toaster UI
+bitbake-setup: embedded-javascript-library
+
+# Python files with unusual interpreters in upstream code
+bitbake-setup: executable-not-elf-or-script
+bitbake-setup: unusual-interpreter
+
+# Encoding issues in upstream beautifully soup library
+bitbake-setup: national-encoding [usr/share/bitbake/lib/bs4/AUTHORS]
+
+# VCS control file from upstream
+bitbake-setup: package-contains-vcs-control-file
