@@ -29,7 +29,7 @@ jobs:
         id: version-check
         run: |
           chmod +x scripts/bump-bitbake-version.sh
-          VERSION=$(scripts/bump-bitbake-version.sh)
+          VERSION=$(scripts/bump-bitbake-version.sh | tail -n1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"

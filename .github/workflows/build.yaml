@@ -31,15 +31,15 @@ jobs:
         run: | 
           git clone https://github.com/openembedded/bitbake.git bitbake
 
-      - name: Create Orig Tarball
+      - name: Create Source Tarball
         run: |
           # We use the version from your changelog to name the tarball correctly
           VERSION=$(dpkg-parsechangelog -S Version | sed 's/-.*//')
           PACKAGE=$(dpkg-parsechangelog -S Source)
           
-          tar --exclude=.git -cJf ../${PACKAGE}_${VERSION}.orig.tar.xz .
+          tar --exclude=.git -cJf ../${PACKAGE}_${VERSION}.tar.xz .
           
-          echo "Tarball created: ../${PACKAGE}_${VERSION}.orig.tar.xz"
+          echo "Tarball created: ../${PACKAGE}_${VERSION}.tar.xz"
 
       - name: Build Package
         run: |
@@ -51,6 +51,8 @@ jobs:
           mv ../*.deb artifacts/
           mv ../*.dsc artifacts/ 2>/dev/null || true
           mv ../*.changes artifacts/ 2>/dev/null || true
+          mv ../*.tar.xz artifacts/ 2>/dev/null || true
+          mv ../*.buildinfo artifacts/ 2>/dev/null || true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
