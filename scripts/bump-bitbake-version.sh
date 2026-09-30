@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 UPSTREAM_REPO="${UPSTREAM_REPO:-https://github.com/openembedded/bitbake.git}"
 TMP_DIR="$(mktemp -d)"
 cleanup() {
@@ -14,6 +14,10 @@ git clone --depth 1 "$UPSTREAM_REPO" bitbake
 VERSION="$(grep -Po '__version__\s*=\s*['\"']\K[^'\"']+' bitbake/bin/bitbake | head -1)"
 if [ -z "$VERSION" ]; then
   echo "Failed to detect version from upstream bitbake/bin/bitbake"
+  exit 1
+fi
+if [[ ! "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+  echo "Invalid upstream version: $VERSION"
   exit 1
 fi
 
@@ -33,9 +37,9 @@ if [ "$VERSION" = "$CURRENT_VERSION" ]; then
   exit 0
 fi
 
-perl -pi -e "s/\Q$CURRENT_VERSION\E/$VERSION/g" README.md
-perl -pi -e "s/^(bitbake-setup \()$CURRENT_VERSION(\) UNRELEASED; urgency=low)/\$1$VERSION\$2/" debian/changelog
-perl -pi -e "s/^(  \* Version )$CURRENT_VERSION(.*)/\$1$VERSION\$2/" debian/changelog
+CURRENT_VERSION_SED="${CURRENT_VERSION//./\\.}"
+sed -i "1s|^bitbake-setup (${CURRENT_VERSION_SED}) UNRELEASED; urgency=low$|bitbake-setup (${VERSION}) UNRELEASED; urgency=low|" debian/changelog
+sed -i "3s|^  \\* Version ${CURRENT_VERSION_SED} \\.$|  * Version ${VERSION} .|" debian/changelog
 
-echo "Updated README.md and debian/changelog to $VERSION"
+echo "Updated debian/changelog to $VERSION"
 echo "$VERSION"
