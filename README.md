@@ -63,13 +63,13 @@ versions.
 Install the locally built package (replace `<version>` accordingly):
 
 ```
-sudo apt install ./bitbake-setup_<version>_amd64.deb
+sudo apt install ./bitbake-package_<version>_amd64.deb
 ```
 
 Or:
 
 ```
-sudo dpkg -i bitbake-setup_<version>_amd64.deb
+sudo dpkg -i bitbake-package_<version>_amd64.deb
 sudo apt-get -f install
 ```
 

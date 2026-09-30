@@ -20,7 +20,7 @@
 
 override_dh_fixperms:
 	dh_fixperms
-	chmod +x debian/bitbake-setup/usr/bin/bitbake*
-	chmod +x debian/bitbake-setup/usr/share/bitbake/bin/
+	chmod +x debian/bitbake-package/usr/bin/bitbake*
+	chmod +x debian/bitbake-package/usr/share/bitbake/bin/
 
 # Override targets for custom build configuration go above this line.
