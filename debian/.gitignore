@@ -2,6 +2,7 @@
 *.debhelper
 *.substvars
 bitbake-setup/
+bitbake-package/
 *.build
 *.buildinfo
 *.changes
