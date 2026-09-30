@@ -5,12 +5,25 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-    types: [labeled, reopened, synchronize]
+    types: [opened, labeled, unlabeled, reopened, synchronize, ready_for_review]
   schedule:
     - cron: '0 0 * * *' # 12 AM UTC
   workflow_dispatch:
 
 jobs:
+  ci-label:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require ci-check label
+        env:
+          HAS_CI_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci-check') }}
+        run: |
+          if [[ "$HAS_CI_LABEL" != "true" ]]; then
+            echo "Add the ci-check label to run CI and allow this PR to merge." >&2
+            exit 1
+          fi
+
   debian-build:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-check')
@@ -30,7 +43,7 @@ jobs:
             xz-utils
 
       - name: Clone bitbake
-        run: | 
+        run: |
           git clone https://github.com/openembedded/bitbake.git bitbake
 
       - name: Create Source Tarball
@@ -38,9 +51,9 @@ jobs:
           # We use the version from your changelog to name the tarball correctly
           VERSION=$(dpkg-parsechangelog -S Version | sed 's/-.*//')
           PACKAGE=$(dpkg-parsechangelog -S Source)
-          
+
           tar --exclude=.git -cJf ../${PACKAGE}_${VERSION}.tar.xz .
-          
+
           echo "Tarball created: ../${PACKAGE}_${VERSION}.tar.xz"
 
       - name: Build Package
@@ -81,12 +94,12 @@ jobs:
         run: |
           # Lintian checks a .changes file which lists all build artifacts
           CHANGES_FILE=$(find . -name "*.changes" -type f)
-          
+
           if [ -z "$CHANGES_FILE" ]; then
             echo "Error: No .changes file found"
             exit 1
           fi
-          
+
           echo "Running lintian on $CHANGES_FILE"
           lintian -i "$CHANGES_FILE"
 
@@ -99,7 +112,7 @@ jobs:
     needs: debian-build  # Only run if the build job succeeds
     runs-on: ubuntu-latest
     steps:
-      
+
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
